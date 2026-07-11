@@ -221,7 +221,7 @@ errors and redirect back:
 
 ```go
 func (c *ContactController) Store(ctx http.Context) http.Response {
-    validator, err := ctx.Request().Validate(map[string]string{
+    validator, err := ctx.Request().Validate(map[string]any{
         "email": "required|email",
     })
     if err != nil || validator.Fails() {
