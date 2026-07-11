@@ -22,7 +22,7 @@ func (r *ContactController) Index(ctx http.Context) http.Response {
 // Store validates the submission. On failure it flashes the errors and redirects
 // back (Inertia re-renders with props.errors). On success it flashes a message.
 func (r *ContactController) Store(ctx http.Context) http.Response {
-	validator, err := ctx.Request().Validate(map[string]string{
+	validator, err := ctx.Request().Validate(map[string]any{
 		"name":    "required|min_len:2",
 		"email":   "required|email",
 		"message": "required|min_len:10",
