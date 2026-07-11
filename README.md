@@ -46,7 +46,7 @@ func (c *HomeController) Index(ctx http.Context) http.Response {
 ## Requirements
 
 - Go **1.26+**
-- Goravel **v1.17+**
+- Goravel **v1.18+** (for Goravel v1.17 use `v0.3.x` of this package)
 - Node 18+ (for the Vite frontend)
 
 ## Installation

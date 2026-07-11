@@ -101,7 +101,7 @@ func TestHandlePassesThroughNonInertia(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/dashboard", nil) // no X-Inertia
 	ctx := newFakeContext(req, httptest.NewRecorder())
 
-	Handle(Options{})(ctx)
+	Handle(Options{}).Handle(ctx)
 
 	if !ctx.req.nextCalled {
 		t.Error("Next() not called on a non-Inertia request")
@@ -118,7 +118,7 @@ func TestHandleVersionMismatchAborts(t *testing.T) {
 	req.Header.Set("X-Inertia-Version", "stale")
 	ctx := newFakeContext(req, httptest.NewRecorder())
 
-	Handle(Options{})(ctx)
+	Handle(Options{}).Handle(ctx)
 
 	if !ctx.req.aborted || ctx.req.abortCode != http.StatusConflict {
 		t.Errorf("expected Abort(409), got aborted=%v code=%d", ctx.req.aborted, ctx.req.abortCode)
@@ -142,7 +142,7 @@ func TestHandleAppliesShareProps(t *testing.T) {
 	Handle(Options{Share: func(c contractshttp.Context) map[string]any {
 		called = true
 		return map[string]any{"auth": "user-1"}
-	}})(ctx)
+	}}).Handle(ctx)
 
 	if !called {
 		t.Fatal("Share callback was not invoked")
@@ -166,13 +166,19 @@ func TestInertiaIsHandleWithoutShare(t *testing.T) {
 	req.Header.Set("X-Inertia-Version", "v1")
 	ctx := newFakeContext(req, httptest.NewRecorder())
 
-	Inertia()(ctx)
+	Inertia().Handle(ctx)
 
 	if !ctx.req.nextCalled {
 		t.Error("Inertia() should pass a valid request through to Next()")
 	}
 	if ctx.req.aborted {
 		t.Error("Inertia() should not abort a version-matching request")
+	}
+}
+
+func TestMiddlewareSignature(t *testing.T) {
+	if got := Handle(Options{}).Signature(); got != "goravel-inertia:handle_inertia_requests" {
+		t.Errorf("Signature() = %q, want goravel-inertia:handle_inertia_requests", got)
 	}
 }
 
