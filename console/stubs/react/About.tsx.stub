@@ -7,7 +7,7 @@ interface AboutProps {
 
 const deps = [
   { name: 'Goravel', tag: 'go', text: 'The Go web framework', href: 'https://github.com/goravel/framework' },
-  { name: 'goravel-inertia', tag: 'adapter', text: 'This Inertia adapter', href: 'https://github.com/eddyjj92/goravel-inertia' },
+  { name: 'goravel-inertia', tag: 'adapter', text: 'This Inertia adapter', href: 'https://github.com/goravel/inertia' },
   { name: 'Inertia.js', tag: 'inertia', text: 'v3 protocol + React adapter', href: 'https://github.com/inertiajs/inertia' },
   { name: 'React', tag: 'react', text: 'The UI library', href: 'https://github.com/facebook/react' },
   { name: 'petaki/inertia-go', tag: 'petaki', text: 'Server engine', href: 'https://github.com/petaki/inertia-go' },

@@ -14,7 +14,7 @@
           <Link href="/about" :class="{ active: isActive('/about') }">About</Link>
           <a
             class="gh"
-            href="https://github.com/eddyjj92/goravel-inertia"
+            href="https://github.com/goravel/inertia"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Star goravel-inertia on GitHub"

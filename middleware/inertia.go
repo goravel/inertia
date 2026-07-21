@@ -5,7 +5,7 @@ import (
 
 	contractshttp "github.com/goravel/framework/contracts/http"
 
-	"github.com/eddyjj92/goravel-inertia/facades"
+	"github.com/goravel/inertia/facades"
 )
 
 // Options configures the Inertia middleware. It is the Go equivalent of the

@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/eddyjj92/goravel-inertia/actions/workflows/ci.yml"><img src="https://github.com/eddyjj92/goravel-inertia/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <a href="https://pkg.go.dev/github.com/eddyjj92/goravel-inertia"><img src="https://pkg.go.dev/badge/github.com/eddyjj92/goravel-inertia.svg" alt="Go Reference" /></a>
+  <a href="https://github.com/goravel/inertia/actions/workflows/ci.yml"><img src="https://github.com/goravel/inertia/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://pkg.go.dev/github.com/goravel/inertia"><img src="https://pkg.go.dev/badge/github.com/goravel/inertia.svg" alt="Go Reference" /></a>
   <img src="https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white" alt="Go 1.26" />
   <img src="https://img.shields.io/badge/Inertia.js-v3-8B5CF6" alt="Inertia v3" />
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT" />
@@ -54,7 +54,7 @@ func (c *HomeController) Index(ctx http.Context) http.Response {
 Install the package and register its service provider automatically:
 
 ```bash
-go run . artisan package:install github.com/eddyjj92/goravel-inertia
+go run . artisan package:install github.com/goravel/inertia
 ```
 
 This runs the package's `setup`, which adds `&goravelinertia.ServiceProvider{}`
@@ -64,11 +64,11 @@ to `bootstrap/providers.go` (or `config/app.go` on a non-bootstrap setup) for yo
 <summary>Manual registration</summary>
 
 ```bash
-go get github.com/eddyjj92/goravel-inertia
+go get github.com/goravel/inertia
 ```
 
 ```go
-import goravelinertia "github.com/eddyjj92/goravel-inertia"
+import goravelinertia "github.com/goravel/inertia"
 
 var Providers = []foundation.ServiceProvider{
     // ...
@@ -129,7 +129,7 @@ Open <http://localhost:3000>.
 Access the manager via the facade:
 
 ```go
-import "github.com/eddyjj92/goravel-inertia/facades"
+import "github.com/goravel/inertia/facades"
 ```
 
 ### Render
