@@ -31,7 +31,7 @@ defineProps<{
 
 const deps = [
   { name: 'Goravel', tag: 'go', text: 'The Go web framework', href: 'https://github.com/goravel/framework' },
-  { name: 'goravel-inertia', tag: 'adapter', text: 'This Inertia adapter', href: 'https://github.com/goravel/inertia' },
+  { name: 'goravel/inertia', tag: 'adapter', text: 'This Inertia adapter', href: 'https://github.com/goravel/inertia' },
   { name: 'Inertia.js', tag: 'inertia', text: 'v3 protocol + Vue 3 adapter', href: 'https://github.com/inertiajs/inertia' },
   { name: 'Vue', tag: 'vue3', text: 'The UI framework', href: 'https://github.com/vuejs/core' },
   { name: 'petaki/inertia-go', tag: 'petaki', text: 'Server engine', href: 'https://github.com/petaki/inertia-go' },

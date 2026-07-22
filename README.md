@@ -19,8 +19,8 @@
 
 ---
 
-`goravel-inertia` is an [Inertia.js](https://inertiajs.com) adapter for the
-[Goravel](https://github.com/goravel/framework) framework. It exposes a
+`goravel/inertia` is the official [Inertia.js](https://inertiajs.com) adapter for
+the [Goravel](https://github.com/goravel/framework) framework. It exposes a
 Laravel-style API on top of [`petaki/inertia-go`](https://github.com/petaki/inertia-go)
 (which implements the Inertia v3 protocol) and wires it into Goravel's HTTP
 lifecycle, session, validation and routing.
@@ -46,8 +46,12 @@ func (c *HomeController) Index(ctx http.Context) http.Response {
 ## Requirements
 
 - Go **1.26+**
-- Goravel **v1.18+** (for Goravel v1.17 use `v0.3.x` of this package)
+- Goravel **v1.18+**
 - Node 18+ (for the Vite frontend)
+
+> **Versioning.** As an official Goravel package, releases track the framework's
+> minor line — Goravel `v1.18.x` → this package `v1.18.x`. Pick the release
+> matching your Goravel version.
 
 ## Installation
 

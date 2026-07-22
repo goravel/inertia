@@ -1,16 +1,17 @@
-# Roadmap — goravel-inertia
+# Roadmap — goravel/inertia
 
-Path to a stable **v1.0.0**. Tracks what's shipped and what's next.
-
-> Detailed historical log of the v0.1.0 build lives in the development notes
+The official [Inertia.js](https://inertiajs.com) v3 adapter for
+[Goravel](https://github.com/goravel/framework). Tracks what's shipped and
+what's next.
 
 ---
 
 ## Current state
 
-**Latest published:** `v0.2.1` · branches `master` == `develop`.
+**Latest published:** `v1.18.0` · official package under the `goravel/`
+organization.
 
-The Go adapter is feature-complete for a single frontend stack (Vue 3):
+The adapter is feature-complete for both first-class stacks (Vue 3 and React):
 
 | Area | Status |
 |------|--------|
@@ -22,7 +23,7 @@ The Go adapter is feature-complete for a single frontend stack (Vue 3):
 | Vite integration — HMR dev (`public/hot`) + hashed prod build | ✅ |
 | Asset versioning from manifest hash | ✅ |
 | SSR + **automatic CSR fallback** when SSR is unreachable | ✅ |
-| `inertia:install` artisan command (Vue 3 demo scaffold) | ✅ |
+| `inertia:install` artisan command — **Vue 3 or React** demo scaffold | ✅ |
 | `HandleInertiaRequests` publishable middleware (Laravel-style) | ✅ |
 | `package:install` setup (auto-registers ServiceProvider) | ✅ |
 | Tests — core coverage ~89% | ✅ |
@@ -39,105 +40,40 @@ changes.**
 
 ---
 
-## Next — v0.3.0: React support
+## Versioning
 
-Goal: `inertia:install --stack=react` scaffolds a full React 18 + Inertia demo,
-on par with the current Vue 3 scaffold. Vue stays the default.
+As an official Goravel package, releases **track the framework's minor line**:
+framework `v1.18.x` → `goravel/inertia` `v1.18.x`. This tells users at a glance
+which Goravel version a release targets.
 
-### Scope: frontend scaffolding + installer only (zero Go core risk)
-
-#### 1. Installer — stack selection
-- [x] `--stack` flag on `inertia:install` (`vue` default, `react`). Unknown stack rejected.
-- [ ] (Optional) interactive prompt when `--stack` omitted.
-- [x] `fileMap` becomes stack-aware (`fileMapFor(stack)` = shared + per-stack).
-
-#### 2. Stub reorganization
-- [x] Move Vue stubs to `console/stubs/vue/`.
-- [x] Add `console/stubs/react/`.
-- [x] Keep **shared** stubs at `console/stubs/shared/` (stack-independent):
-      `web.go.stub`, `*_controller.go.stub`, `config_inertia.go.stub`,
-      `handle_inertia_requests.go.stub`, `favicon.png`, brand image.
-      `app.gohtml.stub` lives per-stack (entry path `.ts` vs `.tsx`).
-- [x] `//go:embed all:stubs` (recursive, includes the new tree + binary assets).
-
-#### 3. React stubs (mirror of the Vue set)
-- [x] `app.tsx` — `createInertiaApp` + `createRoot` (`react-dom/client`),
-      glob over `./Pages/**/*.tsx`, persistent layout, progress.
-- [x] `ssr.tsx` — `createServer` (`@inertiajs/react/server`) +
-      `ReactDOMServer.renderToString`, resolve mirroring `app.tsx`.
-- [x] `Layout.tsx`, `Logo.tsx`.
-- [x] `Pages/{Home,Feed,Contact,About}.tsx` — same demo features:
-      Deferred (`<Deferred>`), Merge ("load more"), flash banner, form with
-      `useForm` + `props.errors`, active nav link.
-- [x] `global.d.ts` — React `PageProps` augmentation (`@inertiajs/core`).
-- [x] `package.json` — `react`, `react-dom`, `@inertiajs/react`,
-      `@vitejs/plugin-react`, `@types/react`, `@types/react-dom`.
-- [x] `vite.config.ts` — `@vitejs/plugin-react`, input `resources/js/app.tsx`,
-      same `goravelHot` plugin + `/build` base + dev origin.
-- [x] `tsconfig.json` — `"jsx": "react-jsx"`, includes `.tsx`.
-- [x] `app.gohtml` — entry `{{ vite "resources/js/app.tsx" }}`.
-
-#### 4. Tests
-- [x] `install_command_test.go` table-driven per stack: each scaffolds its file
-      set in a clean dir; rerun skips; `--force` overwrites; unknown stack rejected.
-- [x] E2E: React scaffold **compiles** — `tsc --noEmit` clean, `vite build` (778
-      modules, page code-split, manifest) + `vite build --ssr` (ssr.js) both green.
-
-#### 5. Docs
-- [x] README: `--stack` usage + note that the Go side is identical across stacks.
-- [ ] `INERTIA.md` (scaffolded): note the chosen stack.
-
-#### 6. Inertia v3 alignment (both stacks on the stable v3 client)
-- [x] Clients bumped to the stable **Inertia v3** line: `@inertiajs/react@3.x`
-      (React 19.2) and `@inertiajs/vue3@3.x` (Vue 3.5), plugin-vue 6 / plugin-react 5
-      (both kept on vite 6).
-- [x] **Root template migrated to the v3 transport.** v3 reads the initial page
-      from `<script data-page="app" type="application/json">…</script>` (verified in
-      `@inertiajs/core@3.3.1` `getInitialPageFromDOM`), not the legacy
-      `<div data-page>` attribute. Both `app.gohtml` stubs now emit
-      `<div id="app"></div>` + the JSON script. SSR `{{ raw .ssr.Body }}` already
-      gets the v3 `buildSSRBody` output unchanged.
-- [x] Head marker `inertia` → `data-inertia` (v3).
-- [x] `resolve()` returns `module.default` (component) to satisfy v3's stricter
-      `ComponentResolver` type.
-- [x] Regression test (`root_template_test.go`): renders the stub through petaki
-      and asserts the v3 script shape + valid, XSS-safe JSON
-      (`</script>` → `</script>`).
-
-**Gate:** ✅ both stacks scaffold; React + Vue compile and build (client + SSR) on
-the Inertia v3 client; root template verified v3-correct at runtime through petaki;
-all 57 Go tests green. Pending: in-browser render check in a live app + optional
-interactive stack prompt + scaffolded INERTIA.md.
+> Pre-adoption `v0.x` tags used the old `github.com/eddyjj92/goravel-inertia`
+> module path and are superseded by `v1.18.0`.
 
 ---
 
-## Path to v1.0.0
+## Next
 
-| Version | Theme |
-|---------|-------|
-| **v0.3.0** | React support (above). |
-| **v0.4.0** | Stack polish: shared stub abstraction proven across Vue + React. |
-| **v0.5.0** | Hardening: automated `setup/` tests (currently manual), CHANGELOG, API surface review. |
-| **v1.0.0** | **Stable API commitment.** Vue + React stacks, full coverage, docs, semver freeze. |
+### Documentation & CI (post-adoption)
+- [ ] Inertia page in [`goravel/docs`](https://github.com/goravel/docs)
+      (on the `upgrade/v1.19.0` branch).
+- [ ] Align CI with the org convention (mirror
+      [`goravel/redis`](https://github.com/goravel/redis/tree/master/.github/workflows)),
+      add a Windows test job.
 
-### v1.0.0 exit criteria
-- [ ] Both first-class stacks (Vue + React) scaffolding cleanly.
-- [ ] `contracts.Inertia` reviewed and frozen (no planned breaking changes).
-- [ ] Automated tests for `setup/` (package-install path).
-- [ ] `CHANGELOG.md` maintained.
-- [ ] Core coverage held >85%.
-- [ ] Docs cover every public method and both stacks.
+### Quality
+- [ ] Automated tests for `setup/` (the `package:install` path).
+- [ ] `CHANGELOG.md`.
+- [ ] Scaffolded `INERTIA.md` records the chosen stack.
+- [ ] Optional interactive stack prompt when `--stack` is omitted.
 
-### Parallel track (external, does not block 1.0.0)
-- Official Goravel package candidacy (`goravel/inertia`): publish GitHub
-  Discussion, await maintainer decision. If accepted → coordinated module-path
-  migration (major-version event). Tracked separately; depends on a third party,
-  so it is **not** a 1.0.0 gate.
+### Scaffolding
+- Keep the Vue + React scaffolding in-repo and refine it deeply over time
+  (shared stub abstraction, demo polish).
 
 ---
 
 ## Conventions
 
-- Work on a feature/fix branch → merge to `develop` → fast-forward to `master`.
+- Work on a feature/fix branch → PR into `master` → maintainer review.
 - Commits authored by the maintainer only (no co-author trailers).
-- Each phase ships its own tests; a phase is "done" only when its gate is green.
+- Each change ships its own tests.
