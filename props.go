@@ -6,7 +6,7 @@ import (
 	contractshttp "github.com/goravel/framework/contracts/http"
 	petaki "github.com/petaki/inertia-go"
 
-	"github.com/eddyjj92/goravel-inertia/contracts"
+	"github.com/goravel/inertia/contracts"
 )
 
 // Ensure the manager satisfies the public contract at compile time.

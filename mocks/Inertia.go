@@ -3,7 +3,7 @@
 package contracts
 
 import (
-	contracts "github.com/eddyjj92/goravel-inertia/contracts"
+	contracts "github.com/goravel/inertia/contracts"
 	http "github.com/goravel/framework/contracts/http"
 
 	mock "github.com/stretchr/testify/mock"

@@ -12,8 +12,8 @@ import (
 	"github.com/goravel/framework/contracts/session"
 	petaki "github.com/petaki/inertia-go"
 
-	goravelinertia "github.com/eddyjj92/goravel-inertia"
-	"github.com/eddyjj92/goravel-inertia/facades"
+	goravelinertia "github.com/goravel/inertia"
+	"github.com/goravel/inertia/facades"
 )
 
 // newManager builds a real InertiaManager and registers it on the facade so the

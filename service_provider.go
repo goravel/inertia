@@ -10,9 +10,9 @@ import (
 
 	petaki "github.com/petaki/inertia-go"
 
-	inertiaconsole "github.com/eddyjj92/goravel-inertia/console"
-	"github.com/eddyjj92/goravel-inertia/contracts"
-	"github.com/eddyjj92/goravel-inertia/facades"
+	inertiaconsole "github.com/goravel/inertia/console"
+	"github.com/goravel/inertia/contracts"
+	"github.com/goravel/inertia/facades"
 )
 
 // ServiceProvider registers and boots the Inertia singleton and facade.
@@ -20,7 +20,7 @@ import (
 // Registered in a Goravel application via package:install (which wires it into
 // bootstrap/providers.go automatically) or manually:
 //
-//	import goravelinertia "github.com/eddyjj92/goravel-inertia"
+//	import goravelinertia "github.com/goravel/inertia"
 //	&goravelinertia.ServiceProvider{}
 type ServiceProvider struct {
 }

@@ -1,5 +1,5 @@
 // Command setup wires goravel-inertia into a Goravel application when installed
-// via `./artisan package:install github.com/eddyjj92/goravel-inertia`.
+// via `./artisan package:install github.com/goravel/inertia`.
 //
 // It registers the Inertia ServiceProvider in the application (bootstrap/providers.go
 // for the modern bootstrap setup, or config/app.go otherwise). Frontend scaffolding

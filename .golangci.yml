@@ -16,7 +16,7 @@ linters:
 
 linters-settings:
   goimports:
-    local-prefixes: github.com/eddyjj92/goravel-inertia
+    local-prefixes: github.com/goravel/inertia
   revive:
     rules:
       # Goravel's http.Context embeds context.Context, so helpers legitimately take

@@ -4,7 +4,7 @@ import (
 	"github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/facades"
 
-	inertiamw "github.com/eddyjj92/goravel-inertia/middleware"
+	inertiamw "github.com/goravel/inertia/middleware"
 )
 
 // HandleInertiaRequests is the application's Inertia middleware — the Go analogue of

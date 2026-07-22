@@ -11,7 +11,7 @@ import (
 	contractshttp "github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/contracts/session"
 
-	"github.com/eddyjj92/goravel-inertia/contracts"
+	"github.com/goravel/inertia/contracts"
 )
 
 // fakeContext implements just enough of contractshttp.Context for the manager.

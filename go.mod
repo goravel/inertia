@@ -1,4 +1,4 @@
-module github.com/eddyjj92/goravel-inertia
+module github.com/goravel/inertia
 
 go 1.26.1
 

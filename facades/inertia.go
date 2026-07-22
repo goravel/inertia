@@ -1,7 +1,7 @@
 package facades
 
 import (
-	"github.com/eddyjj92/goravel-inertia/contracts"
+	"github.com/goravel/inertia/contracts"
 )
 
 var instance contracts.Inertia

@@ -3,7 +3,7 @@ package controllers
 import (
 	"github.com/goravel/framework/contracts/http"
 
-	inertiafacades "github.com/eddyjj92/goravel-inertia/facades"
+	inertiafacades "github.com/goravel/inertia/facades"
 )
 
 type AboutController struct{}
