@@ -35,7 +35,7 @@ func (m *inertiaMiddleware) Signature() string {
 //
 // Non-Inertia requests pass straight through. For Inertia GET requests whose asset
 // version is stale it replies 409 Conflict + X-Inertia-Location so the client does a
-// full reload. Per-request v3 props (Defer/Optional/Merge/...) need no setup here:
+// full reload. Per-request props (Defer/Optional/Merge/...) need no setup here:
 // they lazily initialise from the request context the first time one is set.
 func (m *inertiaMiddleware) Handle(ctx contractshttp.Context) {
 	inertia := facades.Inertia()

@@ -35,7 +35,7 @@ func (c *HomeController) Index(ctx http.Context) http.Response {
 
 ## Features
 
-- 🧩 **Inertia v3 props** — deferred, optional, always, merge / deep-merge / prepend, scroll, once.
+- 🧩 **Request Props** — deferred, optional, always, merge / deep-merge / prepend, scroll, once.
 - ⚡ **Vite integration** — HMR dev server (Laravel-style `public/hot`) and hashed production builds.
 - 🖥️ **SSR** with an **automatic CSR fallback** when the SSR server is unreachable (no blank pages).
 - 💬 **Flash & validation** bridged from Goravel's session into `props.flash` / `props.errors`.
@@ -61,8 +61,9 @@ Install the package and register its service provider automatically:
 go run . artisan package:install github.com/goravel/inertia
 ```
 
-This runs the package's `setup`, which adds `&goravelinertia.ServiceProvider{}`
-to `bootstrap/providers.go` (or `config/app.go` on a non-bootstrap setup) for you.
+This runs the package's `setup`, which registers `&goravelinertia.ServiceProvider{}`
+in `bootstrap/providers.go` and installs the `Inertia()` facade into
+`app/facades/inertia.go` for you.
 
 <details>
 <summary>Manual registration</summary>
@@ -130,10 +131,11 @@ Open <http://localhost:3000>.
 
 ## Usage
 
-Access the manager via the facade:
+Access the manager via the facade installed into `app/facades/inertia.go` by
+`package:install` (imported from your application's own `facades` package):
 
 ```go
-import "github.com/goravel/inertia/facades"
+import "your-app/app/facades"
 ```
 
 ### Render
@@ -195,7 +197,7 @@ facades.Inertia().ShareFunc("user", func(ctx http.Context) any { // per-request
 > `ctx.Request().Session().Put("user", user)` at login and
 > `ctx.Request().Session().Forget("user")` at logout.
 
-### Inertia v3 props
+### Request Props
 
 | Method | Behaviour |
 |--------|-----------|

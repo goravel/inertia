@@ -59,7 +59,7 @@ func NewInertiaManager(adapter *Adapter, url string, version string, flashKeys .
 }
 
 // Render returns a response that renders the given component with props, merging
-// shared props and threading any per-request v3 props from the context.
+// shared props and threading any per-request props from the context.
 func (m *InertiaManager) Render(ctx contractshttp.Context, component string, props map[string]any) contractshttp.Response {
 	return newResponse(func() error {
 		m.mu.RLock()

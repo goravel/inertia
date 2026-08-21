@@ -16,7 +16,7 @@ The adapter is feature-complete for both first-class stacks (Vue 3 and React):
 | Area | Status |
 |------|--------|
 | Render (HTML initial + X-Inertia JSON), version check (409) | ✅ |
-| Per-request v3 props (Defer/Optional/Always/Merge/DeepMerge/Prepend/Scroll/Once/Prop) | ✅ |
+| Request props (Defer/Optional/Always/Merge/DeepMerge/Prepend/Scroll/Once/Prop) | ✅ |
 | Shared props — hybrid: `share()` middleware (per-request) + facade `Share`/`ShareFunc` | ✅ |
 | Session flash + validation errors bridged into `props.flash` / `props.errors` | ✅ |
 | Inertia-aware redirects (303/302) + external `Location` | ✅ |

@@ -23,7 +23,7 @@ type Inertia interface {
 	Share(key string, value any)
 	ShareFunc(key string, fn func(ctx http.Context) any)
 
-	// Per-request props (Inertia v3).
+	// Per-request props.
 	Prop(ctx http.Context, key string, value any)
 	Defer(ctx http.Context, key string, fn func() any, group ...string)
 	Optional(ctx http.Context, key string, fn func() any)
