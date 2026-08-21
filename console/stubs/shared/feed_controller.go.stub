@@ -19,7 +19,7 @@ const (
 	feedMaxPage  = 6
 )
 
-// Index demonstrates a Merge prop (Inertia v3). On a partial reload the client
+// Index demonstrates a Merge prop. On a partial reload the client
 // appends each new page of "items" to the existing list instead of replacing it.
 func (r *FeedController) Index(ctx http.Context) http.Response {
 	page := max(ctx.Request().InputInt("page", 1), 1)

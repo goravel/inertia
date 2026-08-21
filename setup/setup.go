@@ -1,55 +1,41 @@
 // Command setup wires goravel-inertia into a Goravel application when installed
 // via `./artisan package:install github.com/goravel/inertia`.
 //
-// It registers the Inertia ServiceProvider in the application (bootstrap/providers.go
-// for the modern bootstrap setup, or config/app.go otherwise). Frontend scaffolding
-// (Vue 3 / Vite, demo pages, config) is handled separately by `./artisan inertia:install`.
+// It registers the Inertia ServiceProvider in bootstrap/providers.go and installs
+// the Inertia facade into app/facades/inertia.go. Frontend scaffolding (Vue 3 /
+// Vite, demo pages, config) is handled separately by `./artisan inertia:install`.
 package main
 
 import (
 	"os"
 
 	"github.com/goravel/framework/packages"
-	"github.com/goravel/framework/packages/match"
 	"github.com/goravel/framework/packages/modify"
-	"github.com/goravel/framework/support/env"
 	"github.com/goravel/framework/support/path"
 )
 
 func main() {
 	setup := packages.Setup(os.Args)
-
+	stubs := Stubs{}
 	moduleImport := setup.Paths().Module().Import()
 	// The ServiceProvider lives in the package root (package goravelinertia), so it
 	// is referenced by the module's package name — matching the convention of other
-	// official packages (e.g. &gin.ServiceProvider{}) and avoiding a clash with the
-	// application's own "providers" package in bootstrap/providers.go.
+	// official packages (e.g. &gin.ServiceProvider{}).
 	provider := "&goravelinertia.ServiceProvider{}"
-	appConfigPath := path.Config("app.go")
+	inertiaFacadePath := path.Facade("inertia.go")
+	facadesPackage := setup.Paths().Facades().Package()
 
 	setup.Install(
-		// Non-bootstrap setup: register the provider in config/app.go.
-		modify.When(func(_ map[string]any) bool {
-			return !env.IsBootstrapSetup()
-		}, modify.GoFile(appConfigPath).
-			Find(match.Imports()).Modify(modify.AddImport(moduleImport, "goravelinertia")).
-			Find(match.Providers()).Modify(modify.Register(provider))),
+		// Register the provider in bootstrap/providers.go.
+		modify.RegisterProvider(moduleImport, provider),
 
-		// Bootstrap setup: register the provider in bootstrap/providers.go.
-		modify.When(func(_ map[string]any) bool {
-			return env.IsBootstrapSetup()
-		}, modify.RegisterProvider(moduleImport, provider)),
+		// Install the Inertia facade into app/facades/inertia.go.
+		modify.File(inertiaFacadePath).Overwrite(stubs.InertiaFacade(facadesPackage)),
 	).Uninstall(
-		// Non-bootstrap setup: remove the provider from config/app.go.
-		modify.When(func(_ map[string]any) bool {
-			return !env.IsBootstrapSetup()
-		}, modify.GoFile(appConfigPath).
-			Find(match.Providers()).Modify(modify.Unregister(provider)).
-			Find(match.Imports()).Modify(modify.RemoveImport(moduleImport))),
+		// Remove the Inertia facade.
+		modify.File(inertiaFacadePath).Remove(),
 
-		// Bootstrap setup: remove the provider from bootstrap/providers.go.
-		modify.When(func(_ map[string]any) bool {
-			return env.IsBootstrapSetup()
-		}, modify.UnregisterProvider(moduleImport, provider)),
+		// Remove the provider from bootstrap/providers.go.
+		modify.UnregisterProvider(moduleImport, provider),
 	).Execute()
 }

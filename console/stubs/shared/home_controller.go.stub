@@ -15,7 +15,7 @@ func NewHomeController() *HomeController {
 }
 
 func (r *HomeController) Index(ctx http.Context) http.Response {
-	// Deferred prop (Inertia v3): not evaluated on the initial load. The page
+	// Deferred prop: not evaluated on the initial load. The page
 	// paints immediately and the client fetches "stats" in a follow-up request.
 	inertiafacades.Inertia().Defer(ctx, "stats", func() any {
 		time.Sleep(800 * time.Millisecond) // simulate a slow query

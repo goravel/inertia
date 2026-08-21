@@ -15,13 +15,13 @@ var _ contracts.Inertia = (*InertiaManager)(nil)
 // contextKey namespaces values stored on the Goravel http.Context.
 type contextKey string
 
-// ctxKeyProps holds the accumulated context.Context that carries the Inertia v3
-// per-request props (deferred, optional, merge, ...). petaki reads these from the
+// ctxKeyProps holds the accumulated context.Context that carries the per-request
+// props (deferred, optional, merge, ...). petaki reads these from the
 // *http.Request context, so the accumulated context is injected into the request
 // just before Render runs.
 const ctxKeyProps = contextKey("goravel-inertia.props")
 
-// propsContext returns the accumulated v3 props context for this request, falling
+// propsContext returns the accumulated props context for this request, falling
 // back to the underlying request context the first time a prop is set.
 func (m *InertiaManager) propsContext(ctx contractshttp.Context) context.Context {
 	if v := ctx.Value(ctxKeyProps); v != nil {
@@ -33,7 +33,7 @@ func (m *InertiaManager) propsContext(ctx contractshttp.Context) context.Context
 	return m.adapter.Request(ctx).Context()
 }
 
-// storePropsContext persists the accumulated v3 props context back onto the
+// storePropsContext persists the accumulated props context back onto the
 // Goravel http.Context so chained With* calls and Render see the same context.
 func (m *InertiaManager) storePropsContext(ctx contractshttp.Context, c context.Context) {
 	ctx.WithValue(ctxKeyProps, c)
