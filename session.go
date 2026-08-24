@@ -1,4 +1,4 @@
-package goravelinertia
+package inertia
 
 import (
 	contractshttp "github.com/goravel/framework/contracts/http"

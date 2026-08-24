@@ -18,10 +18,10 @@ func main() {
 	setup := packages.Setup(os.Args)
 	stubs := Stubs{}
 	moduleImport := setup.Paths().Module().Import()
-	// The ServiceProvider lives in the package root (package goravelinertia), so it
+	// The ServiceProvider lives in the package root (package inertia), so it
 	// is referenced by the module's package name — matching the convention of other
 	// official packages (e.g. &gin.ServiceProvider{}).
-	provider := "&goravelinertia.ServiceProvider{}"
+	provider := "&inertia.ServiceProvider{}"
 	inertiaFacadePath := path.Facade("inertia.go")
 	facadesPackage := setup.Paths().Facades().Package()
 

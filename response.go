@@ -1,4 +1,4 @@
-package goravelinertia
+package inertia
 
 // response implements goravel contracts/http.Response. The actual write to the
 // underlying http.ResponseWriter is deferred until Goravel calls Render() during

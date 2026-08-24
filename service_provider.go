@@ -1,4 +1,4 @@
-package goravelinertia
+package inertia
 
 import (
 	stdhttp "net/http"
@@ -20,8 +20,8 @@ import (
 // Registered in a Goravel application via package:install (which wires it into
 // bootstrap/providers.go automatically) or manually:
 //
-//	import goravelinertia "github.com/goravel/inertia"
-//	&goravelinertia.ServiceProvider{}
+//	import "github.com/goravel/inertia"
+//	&inertia.ServiceProvider{}
 type ServiceProvider struct {
 }
 
