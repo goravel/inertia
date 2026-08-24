@@ -1,4 +1,4 @@
-package goravelinertia
+package inertia
 
 import (
 	"log"

@@ -1,4 +1,4 @@
-package goravelinertia
+package inertia
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	inertia "github.com/petaki/inertia-go"
+	petaki "github.com/petaki/inertia-go"
 )
 
 // TestV3RootTemplateRendersScriptElement renders the scaffolded vue app.gohtml
@@ -27,7 +27,7 @@ func TestV3RootTemplateRendersScriptElement(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	i := inertia.New("", tmpl, "v1")
+	i := petaki.New("", tmpl, "v1")
 
 	rr := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/", nil) // no X-Inertia → full HTML

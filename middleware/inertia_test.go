@@ -12,7 +12,7 @@ import (
 	"github.com/goravel/framework/contracts/session"
 	petaki "github.com/petaki/inertia-go"
 
-	goravelinertia "github.com/goravel/inertia"
+	"github.com/goravel/inertia"
 	"github.com/goravel/inertia/facades"
 )
 
@@ -20,8 +20,8 @@ import (
 // middleware (which calls facades.Inertia()) resolves it.
 func newManager(t *testing.T, version string) {
 	t.Helper()
-	adapter := goravelinertia.NewAdapter(petaki.New("", "app", version))
-	facades.RegisterInertia(goravelinertia.NewInertiaManager(adapter, "", version))
+	adapter := inertia.NewAdapter(petaki.New("", "app", version))
+	facades.RegisterInertia(inertia.NewInertiaManager(adapter, "", version))
 }
 
 // fakeContext implements just enough of contractshttp.Context for the middleware

@@ -61,7 +61,7 @@ Install the package and register its service provider automatically:
 go run . artisan package:install github.com/goravel/inertia
 ```
 
-This runs the package's `setup`, which registers `&goravelinertia.ServiceProvider{}`
+This runs the package's `setup`, which registers `&inertia.ServiceProvider{}`
 in `bootstrap/providers.go` and installs the `Inertia()` facade into
 `app/facades/inertia.go` for you.
 
@@ -73,11 +73,11 @@ go get github.com/goravel/inertia
 ```
 
 ```go
-import goravelinertia "github.com/goravel/inertia"
+import "github.com/goravel/inertia"
 
 var Providers = []foundation.ServiceProvider{
     // ...
-    &goravelinertia.ServiceProvider{},
+    &inertia.ServiceProvider{},
 }
 ```
 </details>
