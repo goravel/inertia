@@ -26,11 +26,13 @@ func TestServiceProviderRegistersViteFuncs(t *testing.T) {
 	config.EXPECT().Get("inertia.flash_keys").Return(nil).Once()
 
 	app.EXPECT().MakeConfig().Return(config).Once()
-	app.EXPECT().MakeVite().Return(frameworkvite.NewVite(nil)).Once()
+	app.EXPECT().MakeVite().Return(newTestService(t, `{"resources/js/app.ts":{"file":"assets/app-abc.js"}}`)).Once()
 	app.EXPECT().Singleton("goravel.inertia", mock.Anything).Run(func(_ any, callback func(app foundation.Application) (any, error)) {
 		instance, err := callback(app)
 		require.NoError(t, err)
 		require.IsType(t, &InertiaManager{}, instance)
+		// The manifest hash is the version the client compares on every visit.
+		require.NotEmpty(t, instance.(*InertiaManager).Version())
 	}).Once()
 
 	(&ServiceProvider{}).Register(app)

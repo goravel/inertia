@@ -279,6 +279,10 @@ Dev vs prod is decided in the framework service: `public/hot` → `vite.dev_url`
 with no app-level `ShareFunc`. If `&vite.ServiceProvider{}` is missing from
 `bootstrap/providers.go`, a warning is logged at boot.
 
+**Upgrading:** `inertia.NewVite`, `(*inertia.Vite).TemplateFunc`, `.Render` and
+`.Version` are gone, as is the `inertia.vite` config block; the framework `vite`
+service and `config/vite.go` replace them.
+
 ## SSR
 
 ```bash

@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	contractsvite "github.com/goravel/framework/contracts/vite"
 	"github.com/goravel/framework/support"
 	frameworkvite "github.com/goravel/framework/vite"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +15,7 @@ import (
 
 // newTestService returns the framework Vite service pointed at a temporary project,
 // optionally with a build manifest in place.
-func newTestService(t *testing.T, manifest string) contractsvite.Vite {
+func newTestService(t *testing.T, manifest string) *frameworkvite.Vite {
 	t.Helper()
 
 	relativePath := support.RelativePath
@@ -73,23 +72,34 @@ func TestViteFuncsDegradeToComment(t *testing.T) {
 
 	assert.Contains(t, out, "<!-- vite:")
 	assert.Contains(t, out, "vite manifest not found")
+
+	// A missing asset must cost the URL, not the page.
+	assert.Empty(t, render(t, viteFuncs(service), `{{ viteAsset "resources/images/logo.svg" }}`))
 }
 
 func TestViteFuncsNilServiceRendersComment(t *testing.T) {
-	out := render(t, viteFuncs(nil), `{{ vite "resources/inertia/app.ts" }}`)
+	out := render(t, viteFuncs(nil), `{{ vite "resources/inertia/app.ts" }}{{ viteAsset "resources/images/logo.svg" }}{{ viteReactRefresh }}`)
 
 	assert.Contains(t, out, "<!-- vite: ")
 	assert.Contains(t, out, "vite facade is not initialized")
 }
 
 func TestViteFuncsDevURLFromFramework(t *testing.T) {
-	service := frameworkvite.NewVite(nil).
-		UseHotFile(filepath.Join(t.TempDir(), "hot")).
-		UseDevURL("http://localhost:5173")
+	// No hot file and no manifest: the dev URL is the only source of tags.
+	service := newTestService(t, "").UseDevURL("http://localhost:5173")
 
 	out := render(t, viteFuncs(service), `{{ vite "resources/inertia/app.ts" }}`)
 
 	assert.Contains(t, out, `src="http://localhost:5173/@vite/client"`)
+	assert.Contains(t, out, `src="http://localhost:5173/resources/inertia/app.ts"`)
+}
+
+func TestViteFuncsDevURLReactRefresh(t *testing.T) {
+	dev := newTestService(t, "").UseDevURL("http://localhost:5173")
+	assert.Contains(t, render(t, viteFuncs(dev), `{{ viteReactRefresh }}`), `http://localhost:5173/@react-refresh`)
+
+	built := newTestService(t, `{"resources/inertia/app.ts":{"file":"assets/app-abc123.js"}}`)
+	assert.Empty(t, render(t, viteFuncs(built), `{{ viteReactRefresh }}`))
 }
 
 func TestViteFuncsMatchFrameworkView(t *testing.T) {
