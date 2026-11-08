@@ -64,3 +64,29 @@ func TestV3RootTemplateRendersScriptElement(t *testing.T) {
 	}
 	t.Logf("rendered script JSON: %s", jsonBlob)
 }
+
+// TestRootTemplateRendersViteTags renders the real vue stub through petaki with the
+// framework Vite service registered, proving {{ vite }} resolves against the manifest.
+func TestRootTemplateRendersViteTags(t *testing.T) {
+	service := newTestService(t, `{"resources/js/app.ts": {"file": "assets/app-abc123.js"}}`)
+
+	tmpl := filepath.Join(t.TempDir(), "app.gohtml")
+	stub, err := os.ReadFile("console/stubs/vue/app.gohtml.stub")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(tmpl, stub, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	i := petaki.New("", tmpl, "v1")
+	shareViteFuncs(i, service)
+
+	rr := httptest.NewRecorder()
+	if err := i.Render(rr, httptest.NewRequest("GET", "/", nil), "Home", nil); err != nil {
+		t.Fatalf("Render: %v", err)
+	}
+	if !strings.Contains(rr.Body.String(), `src="/build/assets/app-abc123.js"`) {
+		t.Errorf("root template did not render the built entry; got:\n%s", rr.Body.String())
+	}
+}

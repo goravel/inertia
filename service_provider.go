@@ -7,6 +7,7 @@ import (
 	"github.com/goravel/framework/contracts/console"
 	"github.com/goravel/framework/contracts/foundation"
 	contractshttp "github.com/goravel/framework/contracts/http"
+	"github.com/goravel/framework/support/color"
 
 	petaki "github.com/petaki/inertia-go"
 
@@ -57,11 +58,6 @@ func (p *ServiceProvider) Register(app foundation.Application) {
 		url := ""
 		var flashKeys []string
 
-		vitePublic := "public"
-		viteBuild := "build"
-		viteHot := ""
-		viteDevURL := ""
-
 		if config != nil {
 			rootView = config.GetString("inertia.root_view", "app")
 			version = config.GetString("inertia.version", "")
@@ -70,34 +66,29 @@ func (p *ServiceProvider) Register(app foundation.Application) {
 			ssrTimeout = config.GetInt("inertia.ssr_timeout", 5)
 			url = config.GetString("app.url", "")
 			flashKeys = toStringSlice(config.Get("inertia.flash_keys"))
-
-			vitePublic = config.GetString("inertia.vite.public_path", vitePublic)
-			viteBuild = config.GetString("inertia.vite.build_dir", viteBuild)
-			viteHot = config.GetString("inertia.vite.hot_file", viteHot)
-			viteDevURL = config.GetString("inertia.vite.dev_url", viteDevURL)
 		}
 
-		vite := NewVite(vitePublic, viteBuild, viteHot, viteDevURL)
+		viteService := app.MakeVite() // nil when the framework vite module is not installed
 
 		// Auto-derive the asset version from the build manifest when not pinned in
 		// config, so a new build invalidates the client cache automatically.
-		if version == "" {
-			version = vite.Version()
+		if version == "" && viteService != nil {
+			version = viteService.Version()
 		}
 
-		inertia := petaki.New(url, rootView, version)
-		inertia.ShareFunc("vite", vite.TemplateFunc())
+		engine := petaki.New(url, rootView, version)
+		shareViteFuncs(engine, viteService)
 
-		adapter := NewAdapter(inertia)
+		adapter := NewAdapter(engine)
 
 		if ssr {
-			inertia.EnableSsr(ssrURL, &stdhttp.Client{Timeout: time.Duration(ssrTimeout) * time.Second})
+			engine.EnableSsr(ssrURL, &stdhttp.Client{Timeout: time.Duration(ssrTimeout) * time.Second})
 
 			// CSR fallback engine: identical config but SSR disabled. The manager
 			// renders with it when an SSR render fails, so an unreachable SSR server
 			// degrades to client-side rendering instead of a blank page.
 			csr := petaki.New(url, rootView, version)
-			csr.ShareFunc("vite", vite.TemplateFunc())
+			shareViteFuncs(csr, viteService)
 			adapter.SetCSR(csr)
 		}
 
@@ -107,8 +98,23 @@ func (p *ServiceProvider) Register(app foundation.Application) {
 	})
 }
 
+// warnIfViteMissing reports the missing framework Vite provider once per boot. The
+// Inertia root template gets {{ vite }}/{{ viteAsset }} from that service, so without
+// it the page renders none of its assets; saying why here beats a silently asset-less
+// page. color.Warningln is what this framework uses from service providers
+// (vite.ServiceProvider.Boot does the same for a missing view registry).
+func warnIfViteMissing(app foundation.Application) {
+	if app.MakeVite() != nil {
+		return
+	}
+
+	color.Warningln(errViteServiceMissing)
+}
+
 // Boot resolves the manager, registers default shared props, and exposes the facade.
 func (p *ServiceProvider) Boot(app foundation.Application) {
+	warnIfViteMissing(app)
+
 	instance, err := app.Make("goravel.inertia")
 	if err != nil {
 		panic("Failed to resolve goravel.inertia: " + err.Error())

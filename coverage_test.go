@@ -3,8 +3,6 @@ package inertia
 import (
 	"net/http"
 	"net/http/httptest"
-	"path/filepath"
-	"strings"
 	"testing"
 
 	contractshttp "github.com/goravel/framework/contracts/http"
@@ -166,19 +164,6 @@ func TestLocationInertiaHeader(t *testing.T) {
 	}
 	if got := rec.Header().Get("X-Inertia-Location"); got != "https://example.com" {
 		t.Errorf("X-Inertia-Location = %q, want https://example.com", got)
-	}
-}
-
-func TestTemplateFuncRendersDevTags(t *testing.T) {
-	v := NewVite("public", "build", filepath.Join(t.TempDir(), "nohot"), "http://localhost:5173")
-	fn := v.TemplateFunc()
-
-	html := string(fn("resources/js/app.ts"))
-	if !strings.Contains(html, "http://localhost:5173/@vite/client") {
-		t.Errorf("expected @vite/client tag, got: %q", html)
-	}
-	if !strings.Contains(html, "resources/js/app.ts") {
-		t.Errorf("expected entry tag, got: %q", html)
 	}
 }
 
