@@ -98,22 +98,14 @@ func (p *ServiceProvider) Register(app foundation.Application) {
 	})
 }
 
-// warnIfViteMissing reports the missing framework Vite provider once per boot. The
-// Inertia root template gets {{ vite }}/{{ viteAsset }} from that service, so without
-// it the page renders none of its assets; saying why here beats a silently asset-less
-// page. color.Warningln is what this framework uses from service providers
-// (vite.ServiceProvider.Boot does the same for a missing view registry).
-func warnIfViteMissing(app foundation.Application) {
-	if app.MakeVite() != nil {
-		return
-	}
-
-	color.Warningln(errViteServiceMissing)
-}
-
 // Boot resolves the manager, registers default shared props, and exposes the facade.
 func (p *ServiceProvider) Boot(app foundation.Application) {
-	warnIfViteMissing(app)
+	// The Inertia root template gets {{ vite }}/{{ viteAsset }} from the framework
+	// vite service, so without it the page renders none of its assets. Name the
+	// missing provider here instead of leaving a silently asset-less page.
+	if app.MakeVite() == nil {
+		color.Warningln(errViteServiceMissing)
+	}
 
 	instance, err := app.Make("goravel.inertia")
 	if err != nil {

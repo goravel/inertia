@@ -125,9 +125,7 @@ Open <http://localhost:3000>.
 | `ssr_timeout` | `INERTIA_SSR_TIMEOUT` | `5` | Seconds before SSR is abandoned for CSR. |
 | `flash_keys` | — | `success,error,warning,info,message` | Session keys mirrored into `props.flash`. |
 
-Vite build directory, hot file, manifest, entries and `VITE_DEV_URL` are
-configured once in `config/vite.go` (framework `vite` module) and shared by the
-framework views and the Inertia root template.
+Vite is configured in `config/vite.go` (framework `vite` module), not in this file.
 
 ## Usage
 
@@ -261,27 +259,24 @@ facades.Inertia().EncryptHistory(ctx)
 
 ## Frontend (Vite)
 
-`{{ vite }}`, `{{ viteAsset }}` and `{{ viteReactRefresh }}` all come from the
-framework `vite` service (`github.com/goravel/framework/vite`), the same service
-your views use, so the Inertia root template and `resources/views` emit identical
-tags for the same manifest.
+`{{ vite }}`, `{{ viteAsset }}` and `{{ viteReactRefresh }}` come from the
+framework `vite` service, so the Inertia root template and `resources/views` emit
+the same tags for the same build. Install it once:
 
-- **Development:** `npm run dev` runs Vite and writes `public/hot`; the backend
-  loads assets from the dev server with HMR — no env var needed. Without a hot
-  file, set `VITE_DEV_URL` (read as `vite.dev_url`) to point at the running dev
-  server.
-- **Production:** `npm run build` emits hashed assets + a manifest under
-  `public/build`; the backend serves them via the manifest. The asset version is
-  derived from the manifest hash, so a new build busts the client cache.
+```bash
+go run . artisan package:install github.com/goravel/framework/vite
+```
 
-Dev vs prod is decided in the framework service: `public/hot` → `vite.dev_url` /
-`VITE_DEV_URL` → manifest. `viteAsset` works in `resources/inertia/app.gohtml`
-with no app-level `ShareFunc`. If `&vite.ServiceProvider{}` is missing from
-`bootstrap/providers.go`, a warning is logged at boot.
+That writes `config/vite.go`, the single place the build directory, hot file,
+manifest and `vite.dev_url` are set.
 
-**Upgrading:** `inertia.NewVite`, `(*inertia.Vite).TemplateFunc`, `.Render` and
-`.Version` are gone, as is the `inertia.vite` config block; the framework `vite`
-service and `config/vite.go` replace them.
+- **Development:** `npm run dev` writes `public/hot`; assets load from the dev
+  server with HMR.
+- **Production:** `npm run build` emits hashed assets and a manifest under
+  `public/build`; the asset version follows the manifest hash.
+
+If `&vite.ServiceProvider{}` is missing from `bootstrap/providers.go`, boot logs a
+warning naming it.
 
 ## SSR
 

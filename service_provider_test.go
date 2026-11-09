@@ -2,16 +2,18 @@ package inertia
 
 import (
 	"io"
-	"strings"
 	"testing"
 
 	"github.com/goravel/framework/contracts/foundation"
+	contractsvite "github.com/goravel/framework/contracts/vite"
 	mocksconfig "github.com/goravel/framework/mocks/config"
+	mocksconsole "github.com/goravel/framework/mocks/console"
 	mocksfoundation "github.com/goravel/framework/mocks/foundation"
 	"github.com/goravel/framework/support/color"
-	frameworkvite "github.com/goravel/framework/vite"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	mocksinertia "github.com/goravel/inertia/mocks"
 )
 
 func TestServiceProviderRegistersViteFuncs(t *testing.T) {
@@ -38,17 +40,34 @@ func TestServiceProviderRegistersViteFuncs(t *testing.T) {
 	(&ServiceProvider{}).Register(app)
 }
 
-func TestWarnIfViteMissing(t *testing.T) {
-	app := mocksfoundation.NewApplication(t)
-	app.EXPECT().MakeVite().Return(nil).Once()
-	output := color.CaptureOutput(func(io.Writer) { warnIfViteMissing(app) })
-	if !strings.Contains(output, "&vite.ServiceProvider{}") {
-		t.Errorf("warning should name the provider to register, got: %q", output)
-	}
+// expectBoot sets the expectations Boot needs besides MakeVite, so a test can focus
+// on the warning it emits.
+func expectBoot(t *testing.T, app *mocksfoundation.Application, vite contractsvite.Vite) {
+	t.Helper()
+
+	config := mocksconfig.NewConfig(t)
+	artisan := mocksconsole.NewArtisan(t)
+	manager := mocksinertia.NewInertia(t)
+
+	app.EXPECT().MakeVite().Return(vite).Once()
+	app.EXPECT().Make("goravel.inertia").Return(manager, nil).Once()
+	app.EXPECT().MakeConfig().Return(config).Once()
+	app.EXPECT().MakeArtisan().Return(artisan).Once()
+	config.EXPECT().GetString("app.name").Return("Goravel").Once()
+	manager.EXPECT().Share("appName", "Goravel").Once()
+	manager.EXPECT().ShareFunc("timestamp", mock.Anything).Once()
+	artisan.EXPECT().Register(mock.Anything).Once()
+}
+
+func TestBootWarnsWhenViteProviderMissing(t *testing.T) {
+	missing := mocksfoundation.NewApplication(t)
+	expectBoot(t, missing, nil)
+
+	output := color.CaptureOutput(func(io.Writer) { (&ServiceProvider{}).Boot(missing) })
+	require.Contains(t, output, "&vite.ServiceProvider{}")
 
 	bound := mocksfoundation.NewApplication(t)
-	bound.EXPECT().MakeVite().Return(frameworkvite.NewVite(nil)).Once()
-	if output := color.CaptureOutput(func(io.Writer) { warnIfViteMissing(bound) }); output != "" {
-		t.Errorf("no warning expected when vite is bound, got: %q", output)
-	}
+	expectBoot(t, bound, newTestService(t, ""))
+
+	require.Empty(t, color.CaptureOutput(func(io.Writer) { (&ServiceProvider{}).Boot(bound) }))
 }
