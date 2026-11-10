@@ -41,6 +41,12 @@ type Inertia interface {
 	EncryptHistory(ctx http.Context)
 	PreserveFragment(ctx http.Context)
 
+	// Version returns the Inertia asset version — the value the client echoes in
+	// X-Inertia-Version and the middleware compares; a mismatch answers 409 Conflict +
+	// X-Inertia-Location, reloading the page. It defaults to the Vite manifest hash
+	// (contracts/vite.Vite.ManifestHash) but is not that hash: the hash is empty while
+	// the dev server runs or the manifest is unreadable, which silently disables the
+	// check, so a deploy that must bust client caches pins inertia.version.
 	Version() string
 	URL() string
 }

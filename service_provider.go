@@ -70,10 +70,10 @@ func (p *ServiceProvider) Register(app foundation.Application) {
 
 		viteService := app.MakeVite() // nil when the framework vite module is not installed
 
-		// Auto-derive the asset version from the build manifest when not pinned in
-		// config, so a new build invalidates the client cache automatically. While the
-		// dev server runs the manifest hash is empty, so the version check never forces
-		// a reload in development.
+		// A pinned inertia.version wins; otherwise the Vite manifest hash seeds the
+		// version, so each build busts the client cache. The config key stays because a
+		// missing or unreadable manifest yields "", and "" matches every client: the
+		// reload would silently never fire.
 		if version == "" && viteService != nil {
 			version = viteService.ManifestHash()
 		}

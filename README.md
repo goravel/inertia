@@ -119,7 +119,7 @@ Open <http://localhost:3000>.
 | Key | Env | Default | Description |
 |-----|-----|---------|-------------|
 | `root_view` | — | `resources/inertia/app.gohtml` | Root Blade-like template. |
-| `version` | `INERTIA_VERSION` | manifest hash | Asset version for the version check (empty while the dev server runs). |
+| `version` | `INERTIA_VERSION` | Vite manifest hash | Asset version compared in `X-Inertia-Version`. Set it when the manifest is not readable at runtime, or to force a reload after a backend-only deploy. |
 | `ssr` | `INERTIA_SSR` | `false` | Enable server-side rendering. |
 | `ssr_url` | `INERTIA_SSR_URL` | `http://127.0.0.1:13714/render` | SSR Node endpoint. |
 | `ssr_timeout` | `INERTIA_SSR_TIMEOUT` | `5` | Seconds before SSR is abandoned for CSR. |
@@ -277,7 +277,8 @@ relative to the build directory.
   `{{ vite }}` points every tag at the dev server.
 - **Production:** `npm run build` emits hashed assets and a manifest under the
   configured build directory (`public/build` by default); the asset version
-  follows the manifest hash.
+  defaults to the manifest hash, as in Laravel, so a stale `X-Inertia-Version`
+  reloads the client.
 
 ## SSR
 

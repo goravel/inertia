@@ -145,7 +145,9 @@ func (m *InertiaManager) Location(ctx contractshttp.Context, url string) contrac
 	})
 }
 
-// Version returns the configured asset version used for the version check.
+// Version returns the Inertia asset version compared against X-Inertia-Version. It is
+// fixed when the manager is built: inertia.version from config when set, otherwise the
+// Vite ManifestHash(), so the config key is the only supported override.
 func (m *InertiaManager) Version() string {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
