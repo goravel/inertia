@@ -72,8 +72,8 @@ func (p *ServiceProvider) Register(app foundation.Application) {
 
 		// A pinned inertia.version wins; otherwise the Vite manifest hash seeds the
 		// version, so each build busts the client cache. The config key stays because a
-		// missing or unreadable manifest yields "", and "" matches every client: the
-		// reload would silently never fire.
+		// missing or unreadable manifest yields "", which matches only clients rendered
+		// with it: once those reload, the server can no longer spot a stale build.
 		if version == "" && viteService != nil {
 			version = viteService.ManifestHash()
 		}

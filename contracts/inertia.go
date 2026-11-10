@@ -43,10 +43,10 @@ type Inertia interface {
 
 	// Version returns the Inertia asset version — the value the client echoes in
 	// X-Inertia-Version and the middleware compares; a mismatch answers 409 Conflict +
-	// X-Inertia-Location, reloading the page. It defaults to the Vite manifest hash
-	// (contracts/vite.Vite.ManifestHash) but is not that hash: the hash is empty while
-	// the dev server runs or the manifest is unreadable, which silently disables the
-	// check, so a deploy that must bust client caches pins inertia.version.
+	// X-Inertia-Location, reloading the page. A pinned inertia.version wins, otherwise
+	// the Vite manifest hash (framework/contracts/vite.Vite.ManifestHash) is stored as
+	// is, so an empty hash — dev server running or manifest unreadable — leaves nothing
+	// to compare and the check stops firing.
 	Version() string
 	URL() string
 }
