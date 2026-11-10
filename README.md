@@ -268,8 +268,9 @@ go run . artisan package:install github.com/goravel/framework/vite
 ```
 
 That writes `config/vite.go`, the single place `build_directory` (`build`),
-`hot_file` (`hot`) and `manifest` (`.vite/manifest.json`) are set — all three are
-relative to your public directory, so a custom public path moves them together.
+`hot_file` (`hot`) and `manifest` (`.vite/manifest.json`) are set — the build
+directory and hot file are relative to your public directory, and `manifest` is
+relative to the build directory.
 `vite.dev_url` / `VITE_DEV_URL` no longer exist: the dev server URL is read from
 the hot file, so delete that key if an older install left it in `config/vite.go`.
 

@@ -25,7 +25,7 @@ func newTestService(t *testing.T, manifest string) *frameworkvite.Vite {
 	service := frameworkvite.NewVite(nil)
 
 	if manifest != "" {
-		// The build directory and manifest name are public-relative in the framework,
+		// The build directory is public-relative and the manifest name sits inside it,
 		// so the public directory comes from the service's own hot file path.
 		path := filepath.Join(filepath.Dir(service.HotFile()), service.BuildDirectory(), service.ManifestFilename())
 		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {

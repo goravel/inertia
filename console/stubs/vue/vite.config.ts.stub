@@ -5,8 +5,8 @@ import { writeFileSync, rmSync } from 'fs'
 
 // goravelHot writes public/hot with the dev-server URL while `vite` runs (and
 // removes it on exit), Laravel-style. The Go backend reads that file and loads
-// assets from the dev server (HMR) instead of the production manifest — so
-// `go run .` needs no VITE_DEV_URL env var during development.
+// assets from the dev server (HMR) instead of the production manifest. Nothing
+// to set in Go: the hot file carries the dev server URL.
 function goravelHot(): PluginOption {
   const hotFile = resolve(__dirname, 'public/hot')
   const clean = () => {
