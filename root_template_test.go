@@ -78,7 +78,7 @@ func TestRootTemplateRendersViteTags(t *testing.T) {
 // TestRootTemplateRendersReactRefresh renders the react stub in dev mode, where the
 // React entry needs the @vitejs/plugin-react preamble before @vite/client.
 func TestRootTemplateRendersReactRefresh(t *testing.T) {
-	service := newTestService(t, "").UseDevURL("http://localhost:5173")
+	service := useDevServer(t, newTestService(t, ""), "http://localhost:5173")
 
 	i := petaki.New("", rootTemplateFromStub(t, "console/stubs/react/app.gohtml.stub", nil), "v1")
 	shareViteFuncs(i, service)

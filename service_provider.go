@@ -71,9 +71,11 @@ func (p *ServiceProvider) Register(app foundation.Application) {
 		viteService := app.MakeVite() // nil when the framework vite module is not installed
 
 		// Auto-derive the asset version from the build manifest when not pinned in
-		// config, so a new build invalidates the client cache automatically.
+		// config, so a new build invalidates the client cache automatically. While the
+		// dev server runs the manifest hash is empty, so the version check never forces
+		// a reload in development.
 		if version == "" && viteService != nil {
-			version = viteService.Version()
+			version = viteService.ManifestHash()
 		}
 
 		engine := petaki.New(url, rootView, version)

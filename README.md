@@ -119,7 +119,7 @@ Open <http://localhost:3000>.
 | Key | Env | Default | Description |
 |-----|-----|---------|-------------|
 | `root_view` | — | `resources/inertia/app.gohtml` | Root Blade-like template. |
-| `version` | `INERTIA_VERSION` | manifest hash | Asset version for the version check. |
+| `version` | `INERTIA_VERSION` | manifest hash | Asset version for the version check (empty while the dev server runs). |
 | `ssr` | `INERTIA_SSR` | `false` | Enable server-side rendering. |
 | `ssr_url` | `INERTIA_SSR_URL` | `http://127.0.0.1:13714/render` | SSR Node endpoint. |
 | `ssr_timeout` | `INERTIA_SSR_TIMEOUT` | `5` | Seconds before SSR is abandoned for CSR. |
@@ -267,11 +267,14 @@ the same tags for the same build. Install it once:
 go run . artisan package:install github.com/goravel/framework/vite
 ```
 
-That writes `config/vite.go`, the single place the build directory, hot file,
-manifest and `vite.dev_url` are set.
+That writes `config/vite.go`, the single place `build_directory` (`build`),
+`hot_file` (`hot`) and `manifest` (`.vite/manifest.json`) are set — all three are
+relative to your public directory, so a custom public path moves them together.
+`vite.dev_url` / `VITE_DEV_URL` no longer exist: the dev server URL is read from
+the hot file, so delete that key if an older install left it in `config/vite.go`.
 
-- **Development:** `npm run dev` writes `public/hot`; assets load from the dev
-  server with HMR.
+- **Development:** `npm run dev` writes `public/hot` with the dev server URL;
+  while that file exists `{{ vite }}` points every tag at the dev server.
 - **Production:** `npm run build` emits hashed assets and a manifest under
   `public/build`; the asset version follows the manifest hash.
 

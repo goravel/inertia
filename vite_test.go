@@ -22,8 +22,12 @@ func newTestService(t *testing.T, manifest string) *frameworkvite.Vite {
 	t.Cleanup(func() { support.RelativePath = relativePath })
 	support.RelativePath = t.TempDir()
 
+	service := frameworkvite.NewVite(nil)
+
 	if manifest != "" {
-		path := filepath.Join(support.RelativePath, "public", "build", ".vite", "manifest.json")
+		// The build directory and manifest name are public-relative in the framework,
+		// so the public directory comes from the service's own hot file path.
+		path := filepath.Join(filepath.Dir(service.HotFile()), service.BuildDirectory(), service.ManifestFilename())
 		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 			t.Fatal(err)
 		}
@@ -32,7 +36,24 @@ func newTestService(t *testing.T, manifest string) *frameworkvite.Vite {
 		}
 	}
 
-	return frameworkvite.NewVite(nil)
+	return service
+}
+
+// useDevServer simulates `npm run dev`: the framework reads the dev server URL from
+// the hot file, so the test writes one where the service expects it.
+func useDevServer(t *testing.T, service *frameworkvite.Vite, url string) *frameworkvite.Vite {
+	t.Helper()
+
+	hotFile := service.HotFile()
+	if err := os.MkdirAll(filepath.Dir(hotFile), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(hotFile, []byte(url+"\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Remove(hotFile) })
+
+	return service
 }
 
 // render executes tmpl with funcs, failing the test on a parse or execute error.
@@ -84,9 +105,9 @@ func TestViteFuncsNilServiceRendersComment(t *testing.T) {
 	assert.Contains(t, out, "vite facade is not initialized")
 }
 
-func TestViteFuncsDevURLFromFramework(t *testing.T) {
-	// No hot file and no manifest: the dev URL is the only source of tags.
-	service := newTestService(t, "").UseDevURL("http://localhost:5173")
+func TestViteFuncsDevServerTags(t *testing.T) {
+	// No manifest: the hot file is the only source of tags.
+	service := useDevServer(t, newTestService(t, ""), "http://localhost:5173")
 
 	out := render(t, viteFuncs(service), `{{ vite "resources/inertia/app.ts" }}`)
 
@@ -94,8 +115,8 @@ func TestViteFuncsDevURLFromFramework(t *testing.T) {
 	assert.Contains(t, out, `src="http://localhost:5173/resources/inertia/app.ts"`)
 }
 
-func TestViteFuncsDevURLReactRefresh(t *testing.T) {
-	dev := newTestService(t, "").UseDevURL("http://localhost:5173")
+func TestViteFuncsDevServerReactRefresh(t *testing.T) {
+	dev := useDevServer(t, newTestService(t, ""), "http://localhost:5173")
 	assert.Contains(t, render(t, viteFuncs(dev), `{{ viteReactRefresh }}`), `http://localhost:5173/@react-refresh`)
 
 	built := newTestService(t, `{"resources/inertia/app.ts":{"file":"assets/app-abc123.js"}}`)

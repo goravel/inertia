@@ -3,7 +3,7 @@ module github.com/goravel/inertia
 go 1.26.1
 
 require (
-	github.com/goravel/framework v1.18.1-0.20261108114316-af360e1d0215
+	github.com/goravel/framework v1.18.1-0.20261109162935-ac89cb00ec63
 	github.com/petaki/inertia-go v1.15.0
 	github.com/stretchr/testify v1.12.1
 )
