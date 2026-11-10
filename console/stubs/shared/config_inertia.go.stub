@@ -6,8 +6,6 @@ import (
 
 func init() {
 	config := facades.Config()
-	// For version: unset follows the Vite build manifest; set it when the manifest is
-	// not readable at runtime, or to force a reload after a backend-only deploy.
 	config.Add("inertia", map[string]any{
 		"root_view":   "resources/inertia/app.gohtml",
 		"version":     config.Env("INERTIA_VERSION", ""),
