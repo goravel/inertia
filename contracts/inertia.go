@@ -45,8 +45,8 @@ type Inertia interface {
 	// X-Inertia-Version and the middleware compares; a mismatch answers 409 Conflict +
 	// X-Inertia-Location, reloading the page. A pinned inertia.version wins, otherwise
 	// the Vite manifest hash (framework/contracts/vite.Vite.ManifestHash) is stored as
-	// is, so an empty hash — dev server running or manifest unreadable — leaves nothing
-	// to compare and the check stops firing.
+	// is. An empty hash (dev server, unreadable manifest) matches only clients that also
+	// send "", so a stale client is reloaded once and then nothing is left to compare.
 	Version() string
 	URL() string
 }
