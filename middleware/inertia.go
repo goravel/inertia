@@ -33,10 +33,12 @@ func (m *inertiaMiddleware) Signature() string {
 
 // Handle drives the Inertia protocol for a single request.
 //
-// Non-Inertia requests pass straight through. For Inertia GET requests whose asset
-// version is stale it replies 409 Conflict + X-Inertia-Location so the client does a
-// full reload. Per-request props (Defer/Optional/Merge/...) need no setup here:
-// they lazily initialise from the request context the first time one is set.
+// Non-Inertia requests pass straight through. An Inertia GET whose X-Inertia-Version
+// differs from contracts.Inertia.Version() answers 409 Conflict + X-Inertia-Location so
+// the client reloads; that version is resolved once when the manager is built, not
+// re-read from the manifest per request, so inertia.version stays the only override.
+// Per-request props (Defer/Optional/Merge/...) need no setup here: they lazily initialise
+// from the request context the first time one is set.
 func (m *inertiaMiddleware) Handle(ctx contractshttp.Context) {
 	inertia := facades.Inertia()
 

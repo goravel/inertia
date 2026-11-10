@@ -6,7 +6,7 @@
     <link rel="icon" type="image/png" href="/public/favicon.png" />
     <title data-inertia>Goravel + Inertia</title>
     {{ if .ssr }}{{ raw .ssr.Head }}{{ end }}
-    {{ vite "resources/js/app.tsx" }}
+    {{ viteReactRefresh }}{{ vite "resources/js/app.tsx" }}
 </head>
 <body>
     {{ if .ssr }}{{ raw .ssr.Body }}{{ else }}<script data-page="app" type="application/json">{{ marshal .page }}</script><div id="app"></div>{{ end }}

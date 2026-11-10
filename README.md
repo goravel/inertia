@@ -106,7 +106,7 @@ Finally:
 
 ```bash
 npm install
-npm run dev   # writes public/hot, then in another shell:
+npm run dev   # starts Vite and writes the hot file, then in another shell:
 go run .
 ```
 
@@ -119,15 +119,13 @@ Open <http://localhost:3000>.
 | Key | Env | Default | Description |
 |-----|-----|---------|-------------|
 | `root_view` | — | `resources/inertia/app.gohtml` | Root Blade-like template. |
-| `version` | `INERTIA_VERSION` | manifest hash | Asset version for the version check. |
+| `version` | `INERTIA_VERSION` | Vite manifest hash | Asset version compared in `X-Inertia-Version`. Set it when the manifest is not readable at runtime, or to force a reload after a backend-only deploy. |
 | `ssr` | `INERTIA_SSR` | `false` | Enable server-side rendering. |
 | `ssr_url` | `INERTIA_SSR_URL` | `http://127.0.0.1:13714/render` | SSR Node endpoint. |
 | `ssr_timeout` | `INERTIA_SSR_TIMEOUT` | `5` | Seconds before SSR is abandoned for CSR. |
 | `flash_keys` | — | `success,error,warning,info,message` | Session keys mirrored into `props.flash`. |
-| `vite.public_path` | — | `public` | Public web root served to clients. |
-| `vite.build_dir` | — | `build` | Production build dir under `public_path`. |
-| `vite.hot_file` | — | `public/hot` | Hot file written by `npm run dev`. |
-| `vite.dev_url` | `VITE_DEV_URL` | `` | Dev-server URL (usually set via `public/hot`). |
+
+Vite is configured in `config/vite.go` (framework `vite` module), not in this file.
 
 ## Usage
 
@@ -261,14 +259,26 @@ facades.Inertia().EncryptHistory(ctx)
 
 ## Frontend (Vite)
 
-- **Development:** `npm run dev` runs Vite and writes `public/hot`; the backend
-  loads assets from the dev server with HMR — no env var needed.
-- **Production:** `npm run build` emits hashed assets + a manifest under
-  `public/build`; the backend serves them via the manifest. The asset version is
-  derived from the manifest hash, so a new build busts the client cache.
+`{{ vite }}`, `{{ viteAsset }}` and `{{ viteReactRefresh }}` come from the
+framework `vite` service, so the Inertia root template and `resources/views` emit
+the same tags for the same build. Install it once:
 
-The `{{ vite "resources/js/app.ts" }}` template helper picks dev vs prod
-automatically (`public/hot` → `VITE_DEV_URL` → manifest).
+```bash
+go run . artisan package:install Vite
+```
+
+That writes `config/vite.go`, the single place `build_directory` (`build`),
+`hot_file` (`hot`) and `manifest` (`.vite/manifest.json`) are set — the build
+directory and hot file are relative to your public directory, and `manifest` is
+relative to the build directory.
+
+- **Development:** `npm run dev` writes the hot file named by `vite.hot_file`
+  (default `public/hot`) with the dev server URL; while that file exists
+  `{{ vite }}` points every tag at the dev server.
+- **Production:** `npm run build` emits hashed assets and a manifest under the
+  configured build directory (`public/build` by default); the asset version
+  defaults to the manifest hash, as in Laravel, so a stale `X-Inertia-Version`
+  reloads the client.
 
 ## SSR
 

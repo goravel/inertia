@@ -1,141 +1,134 @@
 package inertia
 
 import (
+	"html/template"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/goravel/framework/support"
+	frameworkvite "github.com/goravel/framework/vite"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestViteDevTagsFromDevURL(t *testing.T) {
-	v := NewVite("public", "build", filepath.Join(t.TempDir(), "hot"), "http://localhost:5173")
-
-	html := string(v.Render("resources/js/app.ts"))
-
-	if !strings.Contains(html, `src="http://localhost:5173/@vite/client"`) {
-		t.Errorf("missing @vite/client tag: %s", html)
-	}
-	if !strings.Contains(html, `src="http://localhost:5173/resources/js/app.ts"`) {
-		t.Errorf("missing entry tag: %s", html)
-	}
-}
-
-func TestViteDevTagsReactRefreshPreamble(t *testing.T) {
-	v := NewVite("public", "build", filepath.Join(t.TempDir(), "hot"), "http://localhost:5173")
-
-	// React (.tsx) entry → preamble present, before @vite/client.
-	react := string(v.Render("resources/js/app.tsx"))
-	if !strings.Contains(react, "/@react-refresh") {
-		t.Errorf("missing react-refresh preamble for tsx entry: %s", react)
-	}
-	if !strings.Contains(react, "__vite_plugin_react_preamble_installed__") {
-		t.Errorf("preamble missing install flag: %s", react)
-	}
-	if strings.Index(react, "@react-refresh") > strings.Index(react, "@vite/client") {
-		t.Errorf("preamble must come before @vite/client: %s", react)
-	}
-
-	// Vue (.ts) entry → no React preamble.
-	vue := string(v.Render("resources/js/app.ts"))
-	if strings.Contains(vue, "@react-refresh") {
-		t.Errorf("vue entry should not emit react preamble: %s", vue)
-	}
-}
-
-func TestViteHotFileTakesPrecedence(t *testing.T) {
-	hot := filepath.Join(t.TempDir(), "hot")
-	if err := os.WriteFile(hot, []byte("http://127.0.0.1:5199\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-
-	v := NewVite("public", "build", hot, "http://localhost:5173")
-	html := string(v.Render("resources/js/app.ts"))
-
-	if !strings.Contains(html, "http://127.0.0.1:5199/@vite/client") {
-		t.Errorf("hot file URL should win over dev_url: %s", html)
-	}
-	if strings.Contains(html, "localhost:5173") {
-		t.Errorf("dev_url leaked while hot file present: %s", html)
-	}
-}
-
-func TestViteProdTagsFromManifest(t *testing.T) {
-	public := t.TempDir()
-	manifestDir := filepath.Join(public, "build", ".vite")
-	if err := os.MkdirAll(manifestDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	manifest := `{
-		"resources/js/app.ts": {
-			"file": "assets/app-abc123.js",
-			"src": "resources/js/app.ts",
-			"isEntry": true,
-			"css": ["assets/app-def456.css"]
-		}
-	}`
-	if err := os.WriteFile(filepath.Join(manifestDir, "manifest.json"), []byte(manifest), 0o600); err != nil {
-		t.Fatal(err)
-	}
-
-	// hotFile points nowhere and devURL empty -> production path.
-	v := NewVite(public, "build", filepath.Join(public, "hot"), "")
-	html := string(v.Render("resources/js/app.ts"))
-
-	if !strings.Contains(html, `href="/build/assets/app-def456.css"`) {
-		t.Errorf("missing hashed css link: %s", html)
-	}
-	if !strings.Contains(html, `src="/build/assets/app-abc123.js"`) {
-		t.Errorf("missing hashed js script: %s", html)
-	}
-}
-
-func writeManifest(t *testing.T, public, body string) {
+// newTestService returns the framework Vite service pointed at a temporary project,
+// optionally with a build manifest in place.
+func newTestService(t *testing.T, manifest string) *frameworkvite.Vite {
 	t.Helper()
-	dir := filepath.Join(public, "build", ".vite")
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+
+	relativePath := support.RelativePath
+	t.Cleanup(func() { support.RelativePath = relativePath })
+	support.RelativePath = t.TempDir()
+
+	service := frameworkvite.NewVite(nil)
+
+	if manifest != "" {
+		// The build directory is public-relative and the manifest name sits inside it,
+		// so the public directory comes from the service's own hot file path.
+		path := filepath.Join(filepath.Dir(service.HotFile()), service.BuildDirectory(), service.ManifestFilename())
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte(manifest), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	return service
+}
+
+// useDevServer simulates `npm run dev`: the framework reads the dev server URL from
+// the hot file, so the test writes one where the service expects it.
+func useDevServer(t *testing.T, service *frameworkvite.Vite, url string) *frameworkvite.Vite {
+	t.Helper()
+
+	hotFile := service.HotFile()
+	if err := os.MkdirAll(filepath.Dir(hotFile), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(dir, "manifest.json"), []byte(body), 0o600); err != nil {
+	if err := os.WriteFile(hotFile, []byte(url+"\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = os.Remove(hotFile) })
+
+	return service
 }
 
-func TestViteVersionFromManifestHash(t *testing.T) {
-	public := t.TempDir()
-	writeManifest(t, public, `{"resources/js/app.ts":{"file":"assets/app-aaa.js"}}`)
+// render executes tmpl with funcs, failing the test on a parse or execute error.
+func render(t *testing.T, funcs template.FuncMap, tmpl string) string {
+	t.Helper()
 
-	v := NewVite(public, "build", filepath.Join(public, "hot"), "")
-	version := v.Version()
-	if version == "" {
-		t.Fatal("expected non-empty version from manifest")
-	}
+	parsed, err := template.New("t").Funcs(funcs).Parse(tmpl)
+	require.NoError(t, err)
 
-	// Same content -> same version (stable).
-	if v2 := NewVite(public, "build", filepath.Join(public, "hot"), "").Version(); v2 != version {
-		t.Errorf("version not stable: %q vs %q", version, v2)
-	}
+	var b strings.Builder
+	require.NoError(t, parsed.Execute(&b, nil))
 
-	// Changed content -> different version (cache bust).
-	writeManifest(t, public, `{"resources/js/app.ts":{"file":"assets/app-bbb.js"}}`)
-	if changed := NewVite(public, "build", filepath.Join(public, "hot"), "").Version(); changed == version {
-		t.Errorf("version should change when manifest changes, still %q", version)
-	}
+	return b.String()
 }
 
-func TestViteVersionEmptyWithoutManifest(t *testing.T) {
-	public := t.TempDir()
-	v := NewVite(public, "build", filepath.Join(public, "hot"), "")
-	if got := v.Version(); got != "" {
-		t.Errorf("Version() = %q, want empty without manifest", got)
-	}
+func TestViteFuncsRenderManifestTags(t *testing.T) {
+	service := newTestService(t, `{"resources/inertia/app.ts":{"file":"assets/app-abc123.js","css":["assets/app-def456.css"]}}`)
+
+	out := render(t, viteFuncs(service), `{{ vite "resources/inertia/app.ts" }}`)
+
+	assert.Contains(t, out, `<link rel="stylesheet" href="/build/assets/app-def456.css">`)
+	assert.Contains(t, out, `<script type="module" src="/build/assets/app-abc123.js"></script>`)
 }
 
-func TestViteProdMissingManifestRendersComment(t *testing.T) {
-	public := t.TempDir()
-	v := NewVite(public, "build", filepath.Join(public, "hot"), "")
+func TestViteFuncsRegisterViteAsset(t *testing.T) {
+	service := newTestService(t, `{"resources/images/logo.svg":{"file":"assets/logo-11223344.svg"}}`)
 
-	html := string(v.Render("resources/js/app.ts"))
-	if !strings.Contains(html, "<!-- vite:") {
-		t.Errorf("expected error comment when manifest missing, got: %s", html)
-	}
+	out := render(t, viteFuncs(service), `{{ viteAsset "resources/images/logo.svg" }}`)
+
+	assert.Equal(t, "/build/assets/logo-11223344.svg", out)
+}
+
+func TestViteFuncsDegradeToComment(t *testing.T) {
+	service := newTestService(t, "")
+
+	out := render(t, viteFuncs(service), `{{ vite "resources/inertia/app.ts" }}`)
+
+	assert.Contains(t, out, "<!-- vite:")
+	assert.Contains(t, out, "vite manifest not found")
+
+	// A missing asset must cost the URL, not the page.
+	assert.Empty(t, render(t, viteFuncs(service), `{{ viteAsset "resources/images/logo.svg" }}`))
+}
+
+func TestViteFuncsNilServiceRendersComment(t *testing.T) {
+	out := render(t, viteFuncs(nil), `{{ vite "resources/inertia/app.ts" }}{{ viteAsset "resources/images/logo.svg" }}{{ viteReactRefresh }}`)
+
+	assert.Contains(t, out, "<!-- vite: ")
+	assert.Contains(t, out, "vite facade is not initialized")
+}
+
+func TestViteFuncsDevServerTags(t *testing.T) {
+	// No manifest: the hot file is the only source of tags.
+	service := useDevServer(t, newTestService(t, ""), "http://localhost:5173")
+
+	out := render(t, viteFuncs(service), `{{ vite "resources/inertia/app.ts" }}`)
+
+	assert.Contains(t, out, `src="http://localhost:5173/@vite/client"`)
+	assert.Contains(t, out, `src="http://localhost:5173/resources/inertia/app.ts"`)
+}
+
+func TestViteFuncsDevServerReactRefresh(t *testing.T) {
+	dev := useDevServer(t, newTestService(t, ""), "http://localhost:5173")
+	assert.Contains(t, render(t, viteFuncs(dev), `{{ viteReactRefresh }}`), `http://localhost:5173/@react-refresh`)
+
+	built := newTestService(t, `{"resources/inertia/app.ts":{"file":"assets/app-abc123.js"}}`)
+	assert.Empty(t, render(t, viteFuncs(built), `{{ viteReactRefresh }}`))
+}
+
+func TestViteFuncsMatchFrameworkView(t *testing.T) {
+	service := newTestService(t, `{"resources/inertia/app.ts":{"file":"assets/app-abc123.js"}}`)
+
+	adapter := render(t, viteFuncs(service), `{{ vite "resources/inertia/app.ts" }}`)
+	view := render(t, frameworkvite.Funcs(service), `{{ vite "resources/inertia/app.ts" }}`)
+
+	assert.Contains(t, view, `src="/build/assets/app-abc123.js"`)
+	assert.Equal(t, view, adapter)
 }
