@@ -106,7 +106,7 @@ Finally:
 
 ```bash
 npm install
-npm run dev   # writes public/hot, then in another shell:
+npm run dev   # starts Vite and writes the hot file, then in another shell:
 go run .
 ```
 
@@ -264,23 +264,20 @@ framework `vite` service, so the Inertia root template and `resources/views` emi
 the same tags for the same build. Install it once:
 
 ```bash
-go run . artisan package:install github.com/goravel/framework/vite
+go run . artisan package:install Vite
 ```
 
 That writes `config/vite.go`, the single place `build_directory` (`build`),
 `hot_file` (`hot`) and `manifest` (`.vite/manifest.json`) are set — the build
 directory and hot file are relative to your public directory, and `manifest` is
 relative to the build directory.
-`vite.dev_url` / `VITE_DEV_URL` no longer exist: the dev server URL is read from
-the hot file, so delete that key if an older install left it in `config/vite.go`.
 
-- **Development:** `npm run dev` writes `public/hot` with the dev server URL;
-  while that file exists `{{ vite }}` points every tag at the dev server.
-- **Production:** `npm run build` emits hashed assets and a manifest under
-  `public/build`; the asset version follows the manifest hash.
-
-If `&vite.ServiceProvider{}` is missing from `bootstrap/providers.go`, boot logs a
-warning naming it.
+- **Development:** `npm run dev` writes the hot file named by `vite.hot_file`
+  (default `public/hot`) with the dev server URL; while that file exists
+  `{{ vite }}` points every tag at the dev server.
+- **Production:** `npm run build` emits hashed assets and a manifest under the
+  configured build directory (`public/build` by default); the asset version
+  follows the manifest hash.
 
 ## SSR
 

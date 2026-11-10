@@ -1,14 +1,49 @@
 import { defineConfig, type PluginOption, type ViteDevServer } from 'vite'
 import react from '@vitejs/plugin-react'
-import { resolve } from 'path'
+import { execFileSync } from 'node:child_process'
+import { join, resolve } from 'path'
 import { writeFileSync, rmSync } from 'fs'
 
-// goravelHot writes public/hot with the dev-server URL while `vite` runs (and
-// removes it on exit), Laravel-style. The Go backend reads that file and loads
-// assets from the dev server (HMR) instead of the production manifest. Nothing
-// to set in Go: the hot file carries the dev server URL.
+interface VitePaths {
+  public_directory: string
+  build_directory: string
+  hot_file: string
+  manifest: string
+}
+
+// readVitePaths asks the Go app for the paths config/vite.go declares, so this
+// config and the framework never read a different build directory or hot file.
+function readVitePaths(): VitePaths {
+  const output = execFileSync('go', ['run', '.', 'artisan', 'vite:inputs'], {
+    cwd: __dirname,
+    encoding: 'utf8',
+  })
+  // Artisan colours piped output too; strip the codes before looking for JSON.
+  const json = output
+    .replace(/\u001b\[[0-9;]*[A-Za-z]/g, '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith('{'))
+    .pop()
+  if (json === undefined) {
+    throw new Error(
+      'Cannot read the Vite paths: `go run . artisan vite:inputs` printed no JSON. ' +
+        'Install the framework Vite module with `go run . artisan package:install Vite`.',
+    )
+  }
+
+  const inputs = JSON.parse(json) as { paths: VitePaths }
+  return inputs.paths
+}
+
+const paths = readVitePaths()
+
+// goravelHot writes the hot file `vite.hot_file` names in config/vite.go with the
+// dev-server URL while `vite` runs (and removes it on exit), Laravel-style. The Go
+// backend reads that file and loads assets from the dev server (HMR) instead of the
+// production manifest.
 function goravelHot(): PluginOption {
-  const hotFile = resolve(__dirname, 'public/hot')
+  const hotFile = resolve(__dirname, paths.hot_file)
   const clean = () => {
     try {
       rmSync(hotFile)
@@ -43,17 +78,18 @@ function goravelHot(): PluginOption {
 }
 
 export default defineConfig(({ command }) => ({
-  // Assets are served from /build in production (see routes static mapping) but
-  // from the dev server root in development.
-  base: command === 'build' ? '/build/' : '/',
+  // Assets are served from the configured build directory in production (see
+  // routes static mapping) but from the dev server root in development.
+  base: command === 'build' ? `/${paths.build_directory}/` : '/',
   plugins: [react(), goravelHot()],
   root: '.',
-  // Goravel serves ./public itself; outDir lives inside it, so disable Vite's
-  // public dir copy to avoid the overlap warning and recursive copies.
+  // Goravel serves the public directory itself; outDir lives inside it, so
+  // disable Vite's public dir copy to avoid the overlap warning and recursive
+  // copies.
   publicDir: false,
   build: {
-    outDir: 'public/build',
-    manifest: true,
+    outDir: join(paths.public_directory, paths.build_directory),
+    manifest: paths.manifest,
     rollupOptions: {
       input: 'resources/js/app.tsx',
     },

@@ -309,6 +309,6 @@ func (r *InstallCommand) printNextSteps(ctx console.Context) {
 	ctx.NewLine()
 	ctx.Line("  2. Install JS deps and start the dev server:")
 	ctx.Line("       npm install")
-	ctx.Line("       npm run dev   # writes public/hot, then in another shell:")
+	ctx.Line("       npm run dev   # starts Vite and writes the hot file, then in another shell:")
 	ctx.Line("       go run .")
 }
